@@ -5,6 +5,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+		
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.7/css/bootstrap.min.css" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.css" />
@@ -77,23 +78,45 @@
 				<!--chat-container -->
 				<div id="msgs" class="chat-container"></div>
 				<!--input-bottom -->
-				<form id="send_msg" class="send_msg_form chatbox-input">
-					<i class="fa-sharp fa-solid fa-paperclip"></i>
-					<input id="msg" type="text" placeholder="Type a message" required />
-					<button class="submit_msg">
-						<i class="fa-solid fa-paper-plane"></i>
-					</button>
-				</form>
+				  <emoji-picker id="emojiPicker" style="display:none;"></emoji-picker>
+<form id="send_msg" class="send_msg_form chatbox-input">
+  <i class="fa-sharp fa-solid fa-paperclip"></i>
+  <input id="msg" type="text" placeholder="Type a message" required />
+  <input type="button" id="emojiBtn" class="trigger" value="😀" />
+  <!-- Hide the emoji-picker by default -->
+  <button class="submit_msg" type="submit">
+    <i class="fa-solid fa-paper-plane"></i>
+  </button>
+</form>
 			</div>		
 		</div>
-
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 		
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.min.js"></script>
+	
+		<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
 
 		<script src="./assets/js/main.js?v=<?php echo time(); ?>"></script>
-		
+
+
+<script type="module">
+  const emojiBtn = document.getElementById('emojiBtn');
+  const emojiPicker = document.getElementById('emojiPicker');
+  const msgInput = document.getElementById('msg');
+
+  emojiBtn.addEventListener('click', () => {
+    // Toggle visibility
+    emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+  });
+
+  emojiPicker.addEventListener('emoji-click', (event) => {
+    msgInput.value += event.detail.unicode;
+    emojiPicker.style.display = 'none'; // hide after selecting
+    msgInput.focus();
+  });
+</script>
+	
 	</body>
 </html>

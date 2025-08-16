@@ -4,13 +4,28 @@
 	
 	#region start
 	require_once("config.php");
+	require_once("otp.php");
 						
 	header("Content-Type: application/json; charset=utf-8");
-
 	$data = $_GET["data"] ?? null;
 	$globals["_GET_DATA"] = $data;
 
-	#endregion start
+	// Token middleware
+	if (!isset($_COOKIE['Token'])) {
+		http_response_code(401);
+    	echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    	exit;
+	}
+	$token = $_COOKIE['Token'];
+	$stmt = $pdo->prepare("SELECT user_id FROM user_sessions WHERE token = ? AND expires_at > NOW()");
+	$stmt->execute([$token]);
+	$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+	if (!$user) {
+    	http_response_code(401);
+    	echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    	exit;
+	}
 	
 	switch($data){
 				
@@ -248,7 +263,96 @@
 			echo json_encode(false);
 			
 			#endregion send_wa_txt_msg
-		break;			
+		break;
+		
+		case "delete_wa_txt_msg":
+    		#region delete_wa_txt_msg
+
+    		$msg = $_POST["msg"] ?? null;
+
+			if (!$msg) {
+    			error_log("No msg received in POST");
+    			$msg_obj = null;
+			} else {
+    			$msg_obj = json_decode($msg, true);
+    			if (json_last_error() !== JSON_ERROR_NONE) {
+        			error_log("JSON decode error: " . json_last_error_msg());
+        			$msg_obj = null;
+    			}
+			}
+
+			$contact_id = $msg_obj['contact_id'] ?? null;
+			$username = $msg_obj['belongs_to_username'] ?? null;
+		
+			if(!$msg){
+				error_log("ERROR 34097329087643298674938647892367364647");
+				echo json_encode(false);
+				die();
+			}
+		
+			if(!$username){
+				error_log("ERROR 35408437590347698007689068997689867866");
+				echo json_encode(false);
+				die();
+			}
+			
+			if(!$contact_id){
+				error_log("ERROR 1115439720378540937409-095479854768954");
+				echo json_encode(false);
+				die();
+			}
+			
+			$my_contact_id_query = "SELECT `id` FROM users WHERE `username` = ?  LIMIT 1";
+			$des_username_query = "SELECT `username` FROM users WHERE `id` = ?  LIMIT 1";
+			
+			$mysql_return_final_query1 = mysql_return_final_query($my_contact_id_query,[$username]);		
+			$mysql_return_final_query2 = mysql_return_final_query($des_username_query,[$contact_id]);
+			
+			$my_contact_id = mysql_fetch_array($my_contact_id_query,[$username]);
+			$des_username = mysql_fetch_array($des_username_query,[$contact_id]);
+			
+			$my_contact_id = $my_contact_id[0][0] ?? null;
+			$des_username = $des_username[0][0] ?? null;
+			
+			if(!$my_contact_id || !$des_username){
+				error_log("ERROR 203987923846793274683297649238745637826458726");
+				error_log($mysql_return_final_query1);
+				error_log($mysql_return_final_query2);
+				echo json_encode(false);
+				die();
+			}
+
+   			$results1 = mysql_update(
+        		"messages",
+				["msg_type" => 'revoked'],
+        		["belongs_to_username" => $username,
+				"contact_id" => $contact_id,
+				"is_from_me" => 1,
+				"msg_type" => "text",
+				"msg_body" => $msg_obj['msg_body']
+			]);
+
+			$results2 = mysql_update(
+        		"messages",
+				["msg_type" => 'revoked'],
+				["belongs_to_username" => $des_username,
+				"contact_id" => $my_contact_id,
+				"is_from_me" => 0,
+				"msg_type" => "text",
+				"msg_body" => $msg_obj['msg_body']
+			]);
+
+    		if ($results1["success"]) {
+        		echo json_encode(true);
+        		die();
+    		}
+
+    		error_log("Update failed: " . print_r($results1, true));
+    		echo json_encode(false);
+    		die();
+
+    		#endregion delete_wa_txt_msg
+    	break;
 	}
 	
 	include_all_plugins("api.php");

@@ -14,7 +14,7 @@ CREATE TABLE `contacts` (
   `contact_name` varchar(255) DEFAULT NULL,
   `profile_picture_url` varchar(255) DEFAULT NULL,
   `creation_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `contacts` (`row_id`, `contact_id`, `belongs_to_username`, `contact_name`, `profile_picture_url`, `creation_datetime`) VALUES
 (1, 100, 'assaf', 'בן גולדמן', './profile_pics/ben100.jpg', '2025-07-28 19:46:20'),
@@ -45,9 +45,9 @@ CREATE TABLE `messages` (
   `contact_id` varchar(255) DEFAULT NULL,
   `is_from_me` tinyint(1) DEFAULT '1',
   `msg_type` varchar(255) DEFAULT NULL,
-  `msg_body` longtext,
+  `msg_body` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `creation_datetime` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `messages` (`row_id`, `belongs_to_username`, `msg_datetime`, `contact_id`, `is_from_me`, `msg_type`, `msg_body`, `creation_datetime`) VALUES
 (1, 'beng', '2025-07-29 22:27:17', '1', 1, 'text', 'אהלן אסף!', '2025-07-29 22:27:17'),
@@ -621,10 +621,12 @@ INSERT INTO `messages` (`row_id`, `belongs_to_username`, `msg_datetime`, `contac
 (568, 'noams', '2025-07-30 08:52:50', '1', 0, 'text', 'אין בעיה המפקד!', '2025-07-30 08:52:50');
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(255) DEFAULT NULL,
-  `creation_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+  `creation_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `email` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users` (`id`, `username`, `creation_datetime`) VALUES
 (1, 'assaf', '2025-07-28 17:38:00'),
@@ -643,6 +645,26 @@ INSERT INTO `users` (`id`, `username`, `creation_datetime`) VALUES
 (112, 'yarin', '2025-07-28 17:38:00'),
 (113, 'avrahamk', '2025-07-28 17:38:00'),
 (114, 'noams', '2025-07-28 17:38:00');
+
+CREATE TABLE `user_sessions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `expires_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `user_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+CREATE TABLE `login_attempts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `attempt_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ip_address` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
 
 ALTER TABLE `config`
   ADD PRIMARY KEY (`id`),

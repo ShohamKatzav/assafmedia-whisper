@@ -638,3 +638,29 @@ video{
 	height: 100% !important;
 	width: unset !important;
 }
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: red;
+    cursor: pointer;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+
+
+/* Position emoji picker absolutely below the input */
+#emojiPicker {
+  position:absolute;
+  top: 70%;
+  left: 0;
+  margin-top: 5px;
+  z-index: 1000;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 400px;
+  width: 100%;
+  background: white;
+}
