@@ -201,43 +201,11 @@
 			$contact_id = $_POST["contact_id"] ?? null;
 			$username = $_POST["username"] ?? null;
 		
-			if(!$msg){
-				error_log("ERROR 34097329087643298674938647892367364647");
-				echo json_encode(false);
-				die();
-			}
-		
-			if(!$username){
-				error_log("ERROR 35408437590347698007689068997689867866");
-				echo json_encode(false);
-				die();
-			}
-			
-			if(!$contact_id){
-				error_log("ERROR 1115439720378540937409-095479854768954");
-				echo json_encode(false);
-				die();
-			}
-			
-			$my_contact_id_query = "SELECT `id` FROM users WHERE `username` = ?  LIMIT 1";
-			$des_username_query = "SELECT `username` FROM users WHERE `id` = ?  LIMIT 1";
-			
-			$mysql_return_final_query1 = mysql_return_final_query($my_contact_id_query,[$username]);		
-			$mysql_return_final_query2 = mysql_return_final_query($des_username_query,[$contact_id]);
-			
-			$my_contact_id = mysql_fetch_array($my_contact_id_query,[$username]);
-			$des_username = mysql_fetch_array($des_username_query,[$contact_id]);
-			
-			$my_contact_id = $my_contact_id[0][0] ?? null;
-			$des_username = $des_username[0][0] ?? null;
-			
-			if(!$my_contact_id || !$des_username){
-				error_log("ERROR 203987923846793274683297649238745637826458726");
-				error_log($mysql_return_final_query1);
-				error_log($mysql_return_final_query2);
-				echo json_encode(false);
-				die();
-			}
+			[$ok, $my_contact_id, $des_username] = validate_and_fetch_users($msg, $username, $contact_id);
+    		if (!$ok) {
+        		echo json_encode(false);
+        		die();
+    		}
 			
 			$results1 = mysql_insert("messages",[
 				"belongs_to_username" => $username,
@@ -283,44 +251,12 @@
 
 			$contact_id = $msg_obj['contact_id'] ?? null;
 			$username = $msg_obj['belongs_to_username'] ?? null;
-		
-			if(!$msg){
-				error_log("ERROR 34097329087643298674938647892367364647");
-				echo json_encode(false);
-				die();
-			}
-		
-			if(!$username){
-				error_log("ERROR 35408437590347698007689068997689867866");
-				echo json_encode(false);
-				die();
-			}
-			
-			if(!$contact_id){
-				error_log("ERROR 1115439720378540937409-095479854768954");
-				echo json_encode(false);
-				die();
-			}
-			
-			$my_contact_id_query = "SELECT `id` FROM users WHERE `username` = ?  LIMIT 1";
-			$des_username_query = "SELECT `username` FROM users WHERE `id` = ?  LIMIT 1";
-			
-			$mysql_return_final_query1 = mysql_return_final_query($my_contact_id_query,[$username]);		
-			$mysql_return_final_query2 = mysql_return_final_query($des_username_query,[$contact_id]);
-			
-			$my_contact_id = mysql_fetch_array($my_contact_id_query,[$username]);
-			$des_username = mysql_fetch_array($des_username_query,[$contact_id]);
-			
-			$my_contact_id = $my_contact_id[0][0] ?? null;
-			$des_username = $des_username[0][0] ?? null;
-			
-			if(!$my_contact_id || !$des_username){
-				error_log("ERROR 203987923846793274683297649238745637826458726");
-				error_log($mysql_return_final_query1);
-				error_log($mysql_return_final_query2);
-				echo json_encode(false);
-				die();
-			}
+
+			[$ok, $my_contact_id, $des_username] = validate_and_fetch_users($msg, $username, $contact_id);
+    		if (!$ok) {
+        		echo json_encode(false);
+        		die();
+    		}
 
    			$results1 = mysql_update(
         		"messages",
@@ -353,6 +289,44 @@
 
     		#endregion delete_wa_txt_msg
     	break;
+	}
+
+	function validate_and_fetch_users($msg, $username, $contact_id) {
+    	if (!$msg) {
+        	error_log("ERROR 34097329087643298674938647892367364647");
+        	return [false, null, null];
+    	}
+
+    	if (!$username) {
+        	error_log("ERROR 35408437590347698007689068997689867866");
+        	return [false, null, null];
+    	}
+
+    	if (!$contact_id) {
+        	error_log("ERROR 1115439720378540937409-095479854768954");
+        	return [false, null, null];
+    	}
+
+    	$my_contact_id_query = "SELECT `id` FROM users WHERE `username` = ? LIMIT 1";
+    	$des_username_query  = "SELECT `username` FROM users WHERE `id` = ? LIMIT 1";
+
+    	$mysql_return_final_query1 = mysql_return_final_query($my_contact_id_query, [$username]);
+    	$mysql_return_final_query2 = mysql_return_final_query($des_username_query, [$contact_id]);
+
+    	$my_contact_id = mysql_fetch_array($my_contact_id_query, [$username]);
+    	$des_username  = mysql_fetch_array($des_username_query, [$contact_id]);
+
+    	$my_contact_id = $my_contact_id[0][0] ?? null;
+    	$des_username  = $des_username[0][0] ?? null;
+
+    	if (!$my_contact_id || !$des_username) {
+        	error_log("ERROR 203987923846793274683297649238745637826458726");
+        	error_log($mysql_return_final_query1);
+        	error_log($mysql_return_final_query2);
+        	return [false, null, null];
+    	}
+
+    	return [true, $my_contact_id, $des_username];
 	}
 	
 	include_all_plugins("api.php");

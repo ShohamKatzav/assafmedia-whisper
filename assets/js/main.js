@@ -266,9 +266,11 @@ var proccessMsgsArr = function (msgs) {
 		}
 
 		var $elm = "";
+		var $extraClass = "";
+    	$msgContent = wrapEmojiIfSingle($msgContent); 
 
 		$elm += '<div id="' + $msgHTMLId + '" class="message-box ' + $isFromMeOrOtherSideCssClass + '">';
-		$elm += '<p class="content ' + $msgDirection + '">';
+		$elm += '<p class="content ' + $msgDirection + ' ' + $extraClass + '">';
 		$elm += $msgContent;
 		$elm += "<br/>";
 		$elm += '<span class="datetime">' + $msgDatetime + '</span>';
@@ -282,6 +284,16 @@ var proccessMsgsArr = function (msgs) {
 	}
 
 	return $msgsHTML;
+}
+
+function wrapEmojiIfSingle(msgContent) {
+    const trimmed = msgContent.trim();
+    const emojiRegex = /^\p{Extended_Pictographic}$/u;
+
+    if ([...trimmed].length === 1 && emojiRegex.test(trimmed)) {
+        return '<span class="big-emoji">' + trimmed + '</span>';
+    }
+    return msgContent;
 }
 
 var playIncommingMsgSound = async function () {
