@@ -2,10 +2,13 @@
 
 ## OTP PHP Service
 
-### Reminder: Update Config
+This project requires a `settings.json` file containing configuration for the email service.  
 
-Before using this project, make sure to update the following in `config.php`:
+Create a file at `.vscode/settings.json` with the following structure:
 
-- **Sender email and name** (`FROM_EMAIL`, `FROM_NAME`)
-- **Brevo API key** (`BREVO_API_KEY`)
-
+```json
+{
+  "BREVO_API_KEY": "your-brevo-api-key",
+  "FROM_EMAIL": "your-email@example.com",
+  "FROM_NAME": "Company"
+}

@@ -18,12 +18,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Start session for storing OTP data
 session_start();
 
-$apiKey = constant("BREVO_API_KEY") ?? null;
-$fromEmail = constant("FROM_EMAIL") ?? null;
-$fromName = constant("FROM_NAME") ?? null;
+$path = __DIR__ . '/.vscode/settings.json';
+if (!file_exists($path)) {
+	die("Settings file not found: $path");
+}
+$settings = json_decode(file_get_contents($path), true);
+$apiKey = $settings['BREVO_API_KEY'] ?? null;
+$fromEmail = $settings['FROM_EMAIL'] ?? null;
+$fromName = $settings['FROM_NAME'] ?? null;
 
-if ( !$apiKey || !$fromEmail || !$fromName) {
-    die("Please update config.php with brevo key and email sender details");
+if (!$apiKey || !$fromEmail || !$fromName) {
+    die("Please update settings.json with brevo api key and sender details");
 }
 
 // Get action from URL parameter

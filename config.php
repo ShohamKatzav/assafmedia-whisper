@@ -1,5 +1,4 @@
 <?php
-
 	if(!defined("a328763fe27bba")){
 		die("you can't access this file directly");
 	}
@@ -39,18 +38,12 @@
 		define("MYSQL_DEFAULT_USERNAME","root");
 		define("MYSQL_DEFAULT_DB_NAME","waclonedem_db28072025135752");
 		define("MYSQL_DEFAULT_DB_PASSWORD","");
-		define("BREVO_API_KEY","");
-		define("FROM_EMAIL","shohamkatzav95@gmail.com");
-		define("FROM_NAME","Company");
 		define("ENV","dev");
 	}else{
 		define("MYSQL_DEFAULT_SERVERNAME","localhost");
 		define("MYSQL_DEFAULT_USERNAME","root");
 		define("MYSQL_DEFAULT_DB_NAME","");
 		define("MYSQL_DEFAULT_DB_PASSWORD","");
-		define("BREVO_API_KEY","");
-		define("FROM_EMAIL","shohamkatzav95@gmail.com");
-		define("FROM_NAME","Company");
 		define("ENV","prod");
 	}
 	
