@@ -287,10 +287,10 @@ var proccessMsgsArr = function (msgs) {
 }
 
 function wrapEmojiIfSingle(msgContent) {
-    const trimmed = msgContent.trim();
+    const trimmed = msgContent?.trim();
     const emojiRegex = /^\p{Extended_Pictographic}$/u;
 
-    if ([...trimmed].length === 1 && emojiRegex.test(trimmed)) {
+    if (trimmed && [...trimmed].length === 1 && emojiRegex.test(trimmed)) {
         return '<span class="big-emoji">' + trimmed + '</span>';
     }
     return msgContent;

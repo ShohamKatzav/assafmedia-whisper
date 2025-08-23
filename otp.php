@@ -1,4 +1,9 @@
 <?php
+
+if (!defined("a328763fe27bba"))
+    define("a328763fe27bba","TRUE");
+require_once("config.php");
+
 // CORS headers
 header("Access-Control-Allow-Origin: http://localhost:3000");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
@@ -13,48 +18,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Start session for storing OTP data
 session_start();
 
-$path = __DIR__ . '/.vscode/settings.json';
-if (!file_exists($path)) {
-    die("Settings file not found: $path");
-}
-$settings = json_decode(file_get_contents($path), true);
+$apiKey = constant("BREVO_API_KEY") ?? null;
+$fromEmail = constant("FROM_EMAIL") ?? null;
+$fromName = constant("FROM_NAME") ?? null;
 
-$dbhost = $settings['db_host'] ?? null;
-$dbname = $settings['db_name'] ?? null;
-$dbuser = $settings['db_user'] ?? null;
-$apiKey = $settings['api_key'] ?? null;
-$fromEmail = $settings['from_email'] ?? null;
-$fromName = $settings['from_name'] ?? null;
-
-if (!$dbhost || !$dbname || !$dbuser || !$apiKey || !$fromEmail || !$fromName) {
-    die("please create settings.json file");
-}
-
-try {
-    $pdo = new PDO("mysql:host=$dbhost;dbname=$dbname", $dbuser, '');
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    error_log("Database connection failed: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
-    exit();
+if ( !$apiKey || !$fromEmail || !$fromName) {
+    die("Please update config.php with brevo key and email sender details");
 }
 
 // Get action from URL parameter
 $action = $_GET['data'] ?? $_POST['data'] ?? '';
 
 // Rate limiting check
-function checkRateLimit($username, $pdo) {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM login_attempts WHERE username = ? AND attempt_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)");
-    $stmt->execute([$username]);
-    $attempts = $stmt->fetchColumn();
-    
+function checkRateLimit($username) {
+    $query = "SELECT COUNT(*) FROM login_attempts WHERE username = ? AND attempt_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
+    $result = mysql_fetch_array($query, [$username]);
+    $attempts = $result[0][0] ?? 0;
     return $attempts < 5; // Allow 5 attempts per hour
 }
 
 // Log failed attempt
-function logFailedAttempt($username, $pdo) {
-    $stmt = $pdo->prepare("INSERT INTO login_attempts (username, attempt_time, ip_address) VALUES (?, NOW(), ?)");
-    $stmt->execute([$username, $_SERVER['REMOTE_ADDR']]);
+function logFailedAttempt($username) {
+    $ip = get_clients_ip();
+    $query = "INSERT INTO login_attempts (username, attempt_time, ip_address) VALUES (?, NOW(), ?)";
+    $result = mysql_fetch_array($query, [$username, $ip]);
 }
 
 // Generate 6-digit OTP
@@ -130,10 +117,10 @@ function sendOTPEmail($email, $otp) {
 }
 
 // Verify user credentials
-function verifyUser($username, $pdo) {
-    $stmt = $pdo->prepare("SELECT id, email FROM users WHERE username = ?");
-    $stmt->execute([$username]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+function verifyUser($username) {
+    $query = "SELECT id, email FROM users WHERE username = ?";
+    $result = mysql_fetch_array($query, [$username]);
+    $user = $result[0] ?? 0;
     
     if ($user)
         return $user;
@@ -157,15 +144,15 @@ switch($action) {
         }
         
         // Check rate limiting
-        if (!checkRateLimit($username, $pdo)) {
+        if (!checkRateLimit($username)) {
             echo json_encode(['success' => false, 'message' => 'Too many attempts. Try again later.']);
             exit();
         }
         
         // Verify user credentials
-        $user = verifyUser($username, $pdo);
+        $user = verifyUser($username);
         if (!$user) {
-            logFailedAttempt($username, $pdo);
+            logFailedAttempt($username);
             echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
             exit();
         }
@@ -219,8 +206,8 @@ switch($action) {
             $token = bin2hex(random_bytes(32));
             
             // Store token in database
-            $stmt = $pdo->prepare("INSERT INTO user_sessions (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))");
-            $stmt->execute([$_SESSION['otp_user_id'], $token]);
+            $query = "INSERT INTO user_sessions (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))";
+            $result = mysql_fetch_array($query, [$_SESSION['otp_user_id'], $token]);
             
             // Clear OTP data
             unset($_SESSION['otp'], $_SESSION['otp_user_id'], $_SESSION['otp_expires'], $_SESSION['otp_attempts']);

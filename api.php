@@ -17,9 +17,9 @@
     	exit;
 	}
 	$token = $_COOKIE['Token'];
-	$stmt = $pdo->prepare("SELECT user_id FROM user_sessions WHERE token = ? AND expires_at > NOW()");
-	$stmt->execute([$token]);
-	$user = $stmt->fetch(PDO::FETCH_ASSOC);
+	$query = "SELECT user_id FROM user_sessions WHERE token = ? AND expires_at > NOW()";
+    $result = mysql_fetch_array($query, [$token]);
+    $user = $result[0][0] ?? 0;
 
 	if (!$user) {
     	http_response_code(401);
